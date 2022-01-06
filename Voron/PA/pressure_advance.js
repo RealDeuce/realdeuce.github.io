@@ -1,6 +1,7 @@
 /**
  * Pressure Advance Calibration Pattern
  * Copyright (C) 2019 Sineos [https://github.com/Sineos]
+ * Copyright (C) 2022 RealDeuce [https://github.com/RealDeuce]
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

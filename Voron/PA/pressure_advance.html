@@ -47,13 +47,14 @@
           </tr>
           <tr>
             <td><label for="START_GCODE">Start G-code:</label></td>
-            <td colspan=2><textarea name="START_GCODE" id="START_GCODE" rows="10" cols="100">PRINT_START EXTRUDER=240 BED=110
+            <td colspan=2><textarea name="START_GCODE" id="START_GCODE" rows="10" cols="100">
 ; M190 S110 ; Wait to heat bed
 ; M109 S200 ; Wait to heat extruder, but not hot enough to ooze or cook the filament
 ; G32 ; Home all axes, etc.
 ; G1 Z5 F100 ; Z raise
 ; BED_MESH_CALIBRATE ; Create mesh
 ; M109 S240 ; Wait for nozzle to reach printing temperature
+PRINT_START EXTRUDER=240 BED=110
 </textarea><p>Copy the start G-code from your slicer and set the appropriate parameters</td>
           </tr>
           <tr>
