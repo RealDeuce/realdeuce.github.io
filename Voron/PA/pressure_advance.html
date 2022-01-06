@@ -15,6 +15,13 @@
   <div class="row">
     <div class="calibpat" id="calibpat">
       <h1>Pressure Advance Calibration Pattern</h1>
+      <div class="row alert alert-info custom-alert">
+        <div class="col-lg-1 col-md-2 visible-lg-block visible-md-block custom-alert-icon"> <i class="fa fa-info-circle fa-4x" aria-hidden="true"></i> </div>
+        <div class="col-lg-11 col-md-10 custom-alert-text">
+          <p><em>Caution!</em><br/>
+          If Start G-code is incorrect, it could damage your printer.  Anything which could damage your printer could cause other damage.  Be <em>absolutely sure</em> your Start G-code is correct before printing the generated G-code.</p>
+        </div>
+      </div>
       <p>Use this form to generate G-code that you can use to calibrate your Pressure Advance. Default values apply to standard ABS with a 0.4mm nozzle.</p>
       <p>Press the <code class="highlighter-rouge">Generate G-code</code> button followed by <code class="highlighter-rouge">Download as file</code> to save the result.</p>
       <table id="kfactor">
@@ -48,15 +55,17 @@
           <tr>
             <td><label for="START_GCODE">Start G-code:</label></td>
             <td colspan=2><textarea name="START_GCODE" id="START_GCODE" rows="10" cols="100">
-M190 S110 ; Wait to heat bed
-M109 S200 ; Wait to heat extruder, but not hot enough to ooze or cook the filament
-G32 ; Home all axes, etc.
+M112 ; Validate settings
+M190 S110 ; <-- SET BED TEMPERATURE HERE - Wait to heat bed
+M109 S150 ; <-- Wait to heat extruder for homing accuracy
+G28 ; Home all axis
+G32 ; Home all axis, tram gantry
 G1 Z5 F100 ; Z raise
 BED_MESH_CALIBRATE ; Create mesh
-M109 S240 ; Wait for nozzle to reach printing temperature
+M109 S240 ; <-- SET NOZZLE TEMPERATURE HERE - Wait for nozzle to reach printing temperature
 PRINT_START
 ; PRINT_START EXTRUDER=240 BED=110 ; If using parameter-ized PRINT_START
-</textarea><p>Copy the start G-code from your slicer and set the appropriate parameters</td>
+</textarea><p>Copy the start G-code from your slicer and set the appropriate parameters.  Be sure to check over the <em>entire</em> Start G-code every time before generating.</td>
           </tr>
           <tr>
             <td><label for="RETRACTION">Retraction Distance:</label></td>
