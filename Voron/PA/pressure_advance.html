@@ -57,12 +57,12 @@
             <td colspan=2><textarea name="START_GCODE" id="START_GCODE" rows="12" cols="100">
 M112 ; Refer to https://bit.ly/3q1dChR
 M190 S110 ; <-- SET BED TEMPERATURE HERE - Wait to heat bed
-M109 S150 ; <-- Wait to heat extruder for homing accuracy
+M109 S240 ; <-- SET NOZZLE TEMPERATURE HERE - Wait to heat extruder for homing accuracy
 G28 ; Home all axis
 G32 ; Home all axis, tram gantry
-G1 Z5 F100 ; Z raise
+G90 ; Use absolute positioning
+G1 Z5 F100 ; Move to save Z
 BED_MESH_CALIBRATE ; Create mesh
-M109 S240 ; <-- SET NOZZLE TEMPERATURE HERE - Wait for nozzle to reach printing temperature
 PRINT_START
 ; PRINT_START EXTRUDER=240 BED=110 ; If using parameter-ized PRINT_START
 </textarea><p>Copy the start G-code from your slicer and set the appropriate parameters.  Be sure to check over the <em>entire</em> Start G-code every time before generating.</td>
