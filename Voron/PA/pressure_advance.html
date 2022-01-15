@@ -61,7 +61,7 @@ M109 S240 ; <-- SET NOZZLE TEMPERATURE HERE - Wait to heat extruder for homing a
 G28 ; Home all axis
 G32 ; Home all axis, tram gantry
 G90 ; Use absolute positioning
-G1 Z5 F100 ; Move to save Z
+G1 Z5 F100 ; Move to safe Z
 BED_MESH_CALIBRATE ; Create mesh
 PRINT_START
 ; PRINT_START EXTRUDER=240 BED=110 ; If using parameter-ized PRINT_START
