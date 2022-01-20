@@ -20,7 +20,12 @@
 
 // Settings version of localStorage
 // Increase if default settings are changed / amended
+
 const SETTINGS_VERSION = '1.1';
+const PA_round = -4; // Was previously -3
+const Z_round = -3;
+const XY_round = -4;
+const EXT_round = -5; // Was previously -4
 
 function genGcode() {
 
@@ -267,7 +272,7 @@ function genGcode() {
         k_script += moveTo(numStartX, numStartY + (stepping * LINE_SPACING), basicSettings) +
                     zHop((HEIGHT_LAYER + Z_OFFSET), basicSettings) +
                     doEfeed('+', basicSettings, (USE_FWR ? 'FWR' : 'STD')) +
-                    createGlyphs(numStartX, numStartY + (stepping * LINE_SPACING), basicSettings, Math.round10(i, -3)) +
+                    createGlyphs(numStartX, numStartY + (stepping * LINE_SPACING), basicSettings, Math.round10(i, PA_round)) +
                     doEfeed('-', basicSettings, (USE_FWR ? 'FWR' : 'STD')) +
                     zHop((HEIGHT_LAYER + Z_OFFSET) + 0.1, basicSettings);
       }
@@ -378,10 +383,10 @@ function createLine(coordX, coordY, length, basicSettings, optional) {
   };
   var optArgs = $.extend({}, defaults, optional);
 
-  ext = Math.round10(basicSettings['extRatio'] * optArgs['extMult'] * Math.abs(length), -4);
+  ext = Math.round10(basicSettings['extRatio'] * optArgs['extMult'] * Math.abs(length), EXT_round);
 
-  gcode += 'G1 X' + Math.round10(rotateX(coordX, basicSettings['centerX'], coordY, basicSettings['centerY'], basicSettings['printDir']), -4) +
-             ' Y' + Math.round10(rotateY(coordX, basicSettings['centerX'], coordY, basicSettings['centerY'], basicSettings['printDir']), -4) +
+  gcode += 'G1 X' + Math.round10(rotateX(coordX, basicSettings['centerX'], coordY, basicSettings['centerY'], basicSettings['printDir']), XY_round) +
+             ' Y' + Math.round10(rotateY(coordX, basicSettings['centerX'], coordY, basicSettings['centerY'], basicSettings['printDir']), XY_round) +
              ' E' + ext + ' F' + optArgs['speed'] + optArgs['comment'];
 
   return gcode;
@@ -391,8 +396,8 @@ function createLine(coordX, coordY, length, basicSettings, optional) {
 function moveTo(coordX, coordY, basicSettings) {
   var gcode = '';
 
-  gcode += 'G1 X' + Math.round10(rotateX(coordX, basicSettings['centerX'], coordY, basicSettings['centerY'], basicSettings['printDir']), -4) +
-             ' Y' + Math.round10(rotateY(coordX, basicSettings['centerX'], coordY, basicSettings['centerY'], basicSettings['printDir']), -4) +
+  gcode += 'G1 X' + Math.round10(rotateX(coordX, basicSettings['centerX'], coordY, basicSettings['centerY'], basicSettings['printDir']), XY_round) +
+             ' Y' + Math.round10(rotateY(coordX, basicSettings['centerX'], coordY, basicSettings['centerY'], basicSettings['printDir']), XY_round) +
              ' F' + basicSettings['move'] + ' ; move to start\n';
   return gcode;
 }
@@ -429,8 +434,8 @@ function createAltPattern(startX, startY, basicSettings, patSettings) {
 
   for (var i = patSettings['kStart']; i <= patSettings['kEnd']; i += patSettings['kStep']) {
     if (k % 2 === 0) {
-      gcode += 'SET_PRESSURE_ADVANCE ADVANCE=' + Math.round10(i, -3) + ' ; set Pressure Advance\n' +
-               'M117 K' + Math.round10(i, -3) + ' ; \n' +
+      gcode += 'SET_PRESSURE_ADVANCE ADVANCE=' + Math.round10(i, PA_round) + ' ; set Pressure Advance\n' +
+               'M117 K' + Math.round10(i, PA_round) + ' ; \n' +
                createLine(startX + patSettings['lengthSlow'], startY + j, patSettings['lengthSlow'], basicSettings, {'speed': basicSettings['slow']}) +
                createLine(startX + patSettings['lengthSlow'] + patSettings['lengthFast'], startY + j, patSettings['lengthFast'], basicSettings, {'speed': basicSettings['fast']}) +
                createLine(startX + (2 * patSettings['lengthSlow']) + patSettings['lengthFast'], startY + j, patSettings['lengthSlow'], basicSettings, {'speed': basicSettings['slow']}) +
@@ -438,8 +443,8 @@ function createAltPattern(startX, startY, basicSettings, patSettings) {
       j += patSettings['lineSpacing'];
       k += 1;
     } else if (k % 2 !== 0) {
-      gcode += 'SET_PRESSURE_ADVANCE ADVANCE=' + Math.round10(i, -3) + ' ; set Pressure Advance\n' +
-               'M117 K' + Math.round10(i, -3) + ' ; \n' +
+      gcode += 'SET_PRESSURE_ADVANCE ADVANCE=' + Math.round10(i, PA_round) + ' ; set Pressure Advance\n' +
+               'M117 K' + Math.round10(i, PA_round) + ' ; \n' +
                createLine(startX + patSettings['lengthSlow'] + patSettings['lengthFast'], startY + j, patSettings['lengthSlow'], basicSettings, {'speed': basicSettings['slow']}) +
                createLine(startX + patSettings['lengthSlow'], startY + j, patSettings['lengthFast'], basicSettings, {'speed': basicSettings['fast']}) +
                createLine(startX, startY + j, patSettings['lengthSlow'], basicSettings, {'speed': basicSettings['slow']}) +
@@ -458,8 +463,8 @@ function createStdPattern(startX, startY, basicSettings, patSettings) {
       gcode = '';
 
   for (var i = patSettings['kStart']; i <= patSettings['kEnd']; i += patSettings['kStep']) {
-    gcode += 'SET_PRESSURE_ADVANCE ADVANCE=' + Math.round10(i, -3) + ' ; set Pressure Advance\n' +
-             'M117 K' + Math.round10(i, -3) + ' ; \n' +
+    gcode += 'SET_PRESSURE_ADVANCE ADVANCE=' + Math.round10(i, PA_round) + ' ; set Pressure Advance\n' +
+             'M117 K' + Math.round10(i, PA_round) + ' ; \n' +
              doEfeed('+', basicSettings, (basicSettings['fwRetract'] ? 'FWR' : 'STD')) +
              createLine(startX + patSettings['lengthSlow'], startY + j, patSettings['lengthSlow'], basicSettings, {'speed': basicSettings['slow']}) +
              createLine(startX + patSettings['lengthSlow'] + patSettings['lengthFast'], startY + j, patSettings['lengthFast'], basicSettings, {'speed': basicSettings['fast']}) +
@@ -543,7 +548,7 @@ function createGlyphs(startX, startY, basicSettings, value) {
 function zHop(hop, basicSettings) {
   var gcode = '';
 
-  gcode += 'G1 Z' + Math.round10(hop, -3) + ' F' + basicSettings['slow'] + ' ; zHop\n';
+  gcode += 'G1 Z' + Math.round10(hop, Z_round) + ' F' + basicSettings['slow'] + ' ; zHop\n';
 
   return gcode;
 }
@@ -795,7 +800,7 @@ function validateInput() {
   });
 
   // Check if Pressure Advance Stepping is a multiple of the Pressure Advance Range
-  if ((Math.round10(parseFloat(testNaN['K_END']) - parseFloat(testNaN['K_START']), -3) * Math.pow(10, decimals)) % (parseFloat(testNaN['K_STEP']) * Math.pow(10, decimals)) !== 0) {
+  if ((Math.round10(parseFloat(testNaN['K_END']) - parseFloat(testNaN['K_START']), PA_round) * Math.pow(10, decimals)) % (parseFloat(testNaN['K_STEP']) * Math.pow(10, decimals)) !== 0) {
     $('label[for=K_START]').addClass('invalidDiv');
     $('#K_START')[0].setCustomValidity('Pressure Advance range cannot be cleanly divided.');
     $('label[for=K_END]').addClass('invalidDiv');
