@@ -296,7 +296,7 @@ function saveTextAsFile() {
       textFileAsBlob = new Blob([textToWrite], {type: 'text/plain'}),
       usersFilename = document.getElementById('FILENAME').value,
       filename = usersFilename || '',
-      fileNameToSaveAs = filename + 'kfactor.gcode';
+      fileNameToSaveAs = filename + 'padvance.gcode';
   if (textToWrite) {
     saveAs(textFileAsBlob, fileNameToSaveAs);
   } else {
