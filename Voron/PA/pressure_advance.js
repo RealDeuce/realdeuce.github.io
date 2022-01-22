@@ -37,6 +37,7 @@ function genGcode() {
       NOZZLE_DIAMETER = parseFloat($('#NOZ_DIA').val()),
       NOZZLE_LINE_RATIO = parseFloat($('#NOZ_LIN_R').val()),
       START_GCODE = $('#START_GCODE').val(),
+      END_GCODE = $('#END_GCODE').val(),
       SPEED_SLOW = parseInt($('#SLOW_SPEED').val()),
       SPEED_FAST = parseInt($('#FAST_SPEED').val()),
       SPEED_MOVE = parseInt($('#MOVE_SPEED').val()),
@@ -130,6 +131,7 @@ function genGcode() {
                   '; Filament Diameter = ' + FILAMENT_DIAMETER + ' mm\n' +
                   '; Nozzle Diameter = ' + NOZZLE_DIAMETER + ' mm\n' +
                   '; Start G-code = ' + START_GCODE.replace(/^/gm, '; ')+ '\n' +
+                  '; End G-code = ' + END_GCODE.replace(/^/gm, '; ')+ '\n' +
                   '; Retraction Distance = ' + RETRACT_DIST + ' mm\n' +
                   '; Layer Height = ' + HEIGHT_LAYER + ' mm\n' +
                   '; Fan Speed = ' + FAN_SPEED + ' %\n' +
@@ -283,7 +285,7 @@ function genGcode() {
   k_script += ';\n' +
               '; FINISH\n' +
               ';\n' +
-              'PRINT_END\n' +
+              END_GCODE + '\n' +
               ';';
 
   txtArea.value = k_script;
@@ -585,6 +587,7 @@ function setLocalStorage() {
       NOZZLE_DIAMETER = parseFloat($('#NOZ_DIA').val()),
       NOZZLE_LINE_RATIO = parseFloat($('#NOZ_LIN_R').val()),
       START_GCODE = $('#START_GCODE').val(),
+      END_GCODE = $('#END_GCODE').val(),
       SPEED_SLOW = parseInt($('#SLOW_SPEED').val()),
       SPEED_FAST = parseInt($('#FAST_SPEED').val()),
       SPEED_MOVE = parseInt($('#MOVE_SPEED').val()),
@@ -621,6 +624,7 @@ function setLocalStorage() {
     'NOZZLE_DIAMETER': NOZZLE_DIAMETER,
     'NOZZLE_LINE_RATIO': NOZZLE_LINE_RATIO,
     'START_GCODE': START_GCODE,
+    'END_GCODE': END_GCODE,
     'SPEED_SLOW': SPEED_SLOW,
     'SPEED_FAST': SPEED_FAST,
     'SPEED_MOVE': SPEED_MOVE,
@@ -777,7 +781,7 @@ function validateInput() {
 
   // Start clean
   $('#K_START,#K_END,#K_STEP,#SPACE_LINE,#SLOW_LENGTH,#FAST_LENGTH,#FIL_DIA,#NOZ_DIA,#LAYER_HEIGHT,#EXTRUSION_MULT,#PRIME_EXT,#OFFSET_Z,#NOZ_LIN_R,'
-     + '#START_GCODE,#MOVE_SPEED,#RETRACT_SPEED,#UNRETRACT_SPEED,#PRINT_ACCL,#RETRACTION,#PRIME_SPEED,#DWELL_PRIME,#FAST_SPEED,#SLOW_SPEED').each((i,t) => {
+     + '#START_GCODE,#END_GCODE,#MOVE_SPEED,#RETRACT_SPEED,#UNRETRACT_SPEED,#PRINT_ACCL,#RETRACTION,#PRIME_SPEED,#DWELL_PRIME,#FAST_SPEED,#SLOW_SPEED').each((i,t) => {
     t.setCustomValidity('');
     const tid = $(t).attr('id');
     $(`label[for=${tid}]`).removeClass();
@@ -864,6 +868,7 @@ $(window).load(() => {
       $('#NOZ_DIA').val(settings['NOZZLE_DIAMETER']);
       $('#NOZ_LIN_R').val(settings['NOZZLE_LINE_RATIO']);
       $('#START_GCODE').val(settings['START_GCODE']);
+      $('#END_GCODE').val(settings['END_GCODE']);
       $('#SLOW_SPEED').val(settings['SPEED_SLOW']);
       $('#FAST_SPEED').val(settings['SPEED_FAST']);
       $('#MOVE_SPEED').val(settings['SPEED_MOVE']);
