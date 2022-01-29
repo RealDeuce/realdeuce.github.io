@@ -174,11 +174,11 @@ function genGcode() {
                   ';\n' +
                   '; prepare printing\n' +
                   ';\n' +
+                  START_GCODE + '\n' +
                   'G21 ; Millimeter units\n' +
                   'G90 ; Absolute XYZ\n' +
                   'M83 ; Relative E\n' +
                   'SET_VELOCITY_LIMIT ACCEL=' + ACCELERATION + ' ACCEL_TO_DECEL=' + A2D + ' ; Acceleration\n' +
-                  START_GCODE + '\n' +
                   'G92 E0 ; Reset extruder distance\n' +
                   'M106 S' + Math.round(FAN_SPEED * 2.55) + '\n';
 
