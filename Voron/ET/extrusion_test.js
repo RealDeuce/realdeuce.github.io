@@ -168,14 +168,14 @@ function genGcode() {
 		e_script += ";####### " + (startTemp + (c - 1) * tempOffset) + "C\n";
 		// Set temp
 		e_script += "G4 S0 ; Dwell\n";
-		e_script += "M109 R" + (startTemp + (c - 1) * tempOffset) + '\n';
+		e_script += "M109 S" + (startTemp + (c - 1) * tempOffset) + '\n';
 
 		// Output for each test
 		for (let r = 1; r <= flowSteps; r++) {
 			// Message
 			e_script += '\n';
 			e_script += ";####### " + (startFlow + (r - 1) * flowOffset) + "mm³/s\n";
-			e_script += "M117 " + (startTemp + (c - 1) * tempOffset) + " ; °C\n";
+			e_script += "M117 " + (startTemp + (c - 1) * tempOffset) + "°C / " + (startFlow + (r - 1) * flowOffset) + "mm³/s\n";
 			// Move to start
 			e_script += "G0 X" + (Math.abs(bedMargin) + ((c - 1) * (primeLength + wipeLength + xSpacing))) + " Y" + ((bedLength - bedMargin) - (r - 1) * ySpacing) + " Z" + (0.5 + blobHeight + 5) + " F" + movementSpeed + "\n";
 			e_script += "G4 S" + stabilizationTime + "; Stabilize\n";
