@@ -1,0 +1,234 @@
+<html>
+<head>
+<title>Extrusion Test GCode Generator</title>
+<meta charset="UTF-8">
+<meta name="description" content="Create G-code to calibrate Extrusion">
+<link rel="stylesheet" href="../PA/stylesheets/main.css"/>
+<link rel="stylesheet" href="slumb3rt1t4n22stylesheets/font-awesome.min.css"/>
+</head>
+<body>
+<script language="JavaScript" type="text/javascript" src="../PA/javascript/jquery-2.2.1.min.js"></script>
+<script language="JavaScript" type="text/javascript" src="../PA/javascript/jquery-ui.min.js"></script>
+<script language="JavaScript" type="text/javascript" src="../PA/FileSaver.min.js"></script>
+<script language="JavaScript" type="text/javascript" src="extrusion_test.js"></script>
+<div class="container" role="main">
+  <div class="row">
+    <div class="calibpat" id="calibpat">
+      <h1>Extrusion Test</h1>
+      <div class="row alert alert-info custom-alert">
+        <div class="col-lg-1 col-md-2 visible-lg-block visible-md-block custom-alert-icon"> <i class="fa fa-info-circle fa-4x" aria-hidden="true"></i> </div>
+        <div class="col-lg-11 col-md-10 custom-alert-text">
+          <p><em>WARNING!</em><br/>
+          THIS IS A WORK IN PROGRESS AND IS KNOWN TO BE BROKEN -- DO NOT USE.</p>
+        </div>
+        <div class="col-lg-11 col-md-10 custom-alert-text">
+          <p><em>Caution!</em><br/>
+          If Start G-code is incorrect, it could damage your printer.  Anything which could damage your printer could cause other damage.  Be <em>absolutely sure</em> your Start G-code is correct before printing the generated G-code.</p>
+        </div>
+      </div>
+      <p>Use this form to generate G-code that you can use to calibrate your Extrusion Multiplier. Default values apply to standard ABS with a 0.4mm nozzle.</p>
+      <p>Press the <code class="highlighter-rouge">Generate G-code</code> button followed by <code class="highlighter-rouge">Download as file</code> to save the result.</p>
+      <table id="padv">
+        <tbody>
+          <tr>
+            <td colspan="3" class="tdHead"><h3>Settings</h3></td>
+            <td class="tdHead"><h3>G-code</h3></td>
+          </tr>
+          <tr>
+            <td colspan="3" class="tdSection"><h4>Printer:</h4></td>
+            <td rowspan="40" class="txtareatd"><textarea name="textarea" id="gcodetextarea"></textarea></td>
+          </tr>
+          <tr>
+            <td><label for="PRINTER">Printer:</label></td>
+            <td><input name="PRINTER" id="PRINTER" value="printer name" /></td>
+          </tr>
+          <tr>
+            <td><label for="FILAMENT">Filament:</label></td>
+            <td><input name="FILAMENT" id="FILAMENT" value="filament name" /></td>
+          </tr>
+          <tr>
+            <td><label for="FIL_DIA">Filament Diameter:</label></td>
+            <td><input name="FIL_DIA" id="FIL_DIA" step="any" value="1.75" onblur="validateInput()" /></td>
+            <td>Diameter of the used filament (mm)</td>
+          </tr>
+          <tr>
+            <td><label for="START_GCODE">Start G-code:</label></td>
+            <td colspan=2><textarea name="START_GCODE" id="START_GCODE" rows="12" cols="100">
+M112 ; Refer to https://bit.ly/3q1dChR
+M190 S110 ; <-- SET BED TEMPERATURE HERE - Wait to heat bed
+M109 S240 ; <-- SET NOZZLE TEMPERATURE HERE - Wait to heat extruder for homing accuracy
+G28 ; Home all axis
+G32 ; Home all axis, tram gantry
+G90 ; Use absolute positioning
+G1 Z5 F100 ; Move to safe Z
+BED_MESH_CALIBRATE ; Create mesh
+PRINT_START
+; PRINT_START EXTRUDER=240 BED=110 ; If using parameter-ized PRINT_START
+</textarea><p>Copy the start G-code from your slicer and set the appropriate parameters.  Be sure to check over the <em>entire</em> Start G-code every time before generating.</td>
+          </tr>
+          <tr>
+            <td><label for="END_GCODE">End G-code:</label></td>
+            <td colspan=2><textarea name="END_GCODE" id="END_GCODE" rows="3" cols="100">
+PRINT_END
+</textarea><p>Copy the end G-code from your slicer and set any appropriate parameters.</td>
+          </tr>
+          <tr>
+            <td><label for="RETRACTION">Retraction Distance:</label></td>
+            <td><input name="RETRACTION" id="RETRACTION" step="any" value="0.75" onblur="validateInput()" /></td>
+            <td>Retraction distance (mm)</td>
+          </tr>
+          <tr>
+            <td><label for="FAN_SPEED">Fan Speed:</label></td>
+            <td><input name="FAN_SPEED" id="FAN_SPEED" step="1" value="0" onblur="validateInput()" /></td>
+            <td>Fan Speed (%)</td>
+          </tr>
+          <tr>
+            <td colspan="3" class="tdSection"><h4>Print Bed:</h4></td>
+          </tr>
+          <tr>
+            <td><label for="BEDSIZE_X">Bed Size X:</label></td>
+            <td><input name="BEDSIZE_X" id="BEDSIZE_X" step="any" value="250" onblur="validateInput()" /></td>
+            <td id="shape">Size (mm) of the bed in X</td>
+          </tr>
+          <tr>
+            <td><label for="BEDSIZE_Y">Bed Size Y:</label></td>
+            <td><input name="BEDSIZE_Y" id="BEDSIZE_Y" step="any" value="250" onblur="validateInput()" /></td>
+            <td>Size (mm) of the bed in Y</td>
+          </tr>
+          <tr>
+            <td><label for="BED_MARGIN">Bed Margin:</label></td>
+            <td><input name="BED_MARGIN" id="BED_MARGIN" step="any" value="5" onblur="validateInput()" /></td>
+            <td>Minimum distance from edge of bed to the print</td>
+          </tr>
+          <tr>
+            <td colspan="3" class="tdSection"><h4>Speed:</h4></td>
+          </tr>
+          <tr>
+            <td><label for="MM_S">Use mm/s:</label></td>
+            <td><input name="MM_S" type="checkbox" id="MM_S" checked="checked" /></td>
+            <td>Use mm/s instead of mm/min</td>
+          </tr>
+          <tr>
+            <td><label for="MOVE_SPEED">Movement Speed:</label></td>
+            <td><input name="MOVE_SPEED" id="MOVE_SPEED" step="any" value="500" onblur="validateInput()" /></td>
+            <td>Movement speed</td>
+          </tr>
+          <tr>
+            <td><label for="RETRACT_SPEED">Retract Speed:</label></td>
+            <td><input name="RETRACT_SPEED" id="RETRACT_SPEED" step="any" value="30" onblur="validateInput()" /></td>
+            <td>Retract Speed of the extruder</td>
+          </tr>
+          <tr>
+            <td><label for="UNRETRACT_SPEED">Unretract Speed:</label></td>
+            <td><input name="UNRETRACT_SPEED" id="UNRETRACT_SPEED" step="any" value="30" onblur="validateInput()" /></td>
+            <td>Unretract Speed of the extruder</td>
+          </tr>
+          <tr>
+          </tr>
+            <td colspan="3" class="tdSection"><h4>Pattern:</h4></td>
+          </tr>
+          <tr>
+            <td><label for="F_START">Starting Value for Flow:</label></td>
+            <td><input name="F_START" id="F_START" step="any" value="2" onblur="validateInput()" /></td>
+            <td id="start_factor">Starting value for the Flow Rate</td>
+          </tr>
+          <tr>
+            <td><label for="F_END">Ending Value for Flow:</label></td>
+            <td><input name="F_END" id="F_END" step="any" value="16" onblur="validateInput()" /></td>
+            <td id="end_factor">Ending value of the Flow</td>
+          </tr>
+          <tr>
+            <td><label for="F_STEP">Flow Stepping:</label></td>
+            <td><input name="F_STEP" id="F_STEP" step="any" value="2" onblur="validateInput()" /></td>
+            <td id="step_factor">Stepping of the Flow in the test pattern. Needs to be an exact divisor of the Flow Range (End - Start)</td>
+          </tr>
+          <tr>
+            <td><label for="T_START">Starting Value for Temperature:</label></td>
+            <td><input name="T_START" id="T_START" step="any" value="260" onblur="validateInput()" /></td>
+            <td id="start_factor">Starting value for the Temperature</td>
+          </tr>
+          <tr>
+            <td><label for="T_END">Ending Value for Temperature:</label></td>
+            <td><input name="T_END" id="T_END" step="any" value="240" onblur="validateInput()" /></td>
+            <td id="end_factor">Ending value of the Temperature</td>
+          </tr>
+          <tr>
+            <td><label for="T_STEP">Temperature Stepping:</label></td>
+            <td><input name="T_STEP" id="T_STEP" step="any" value="-10" onblur="validateInput()" /></td>
+            <td id="step_factor">Stepping of the Temperature in the test pattern. Needs to be an exact divisor of the Temperature Range (End - Start)</td>
+          </tr>
+          <tr>
+            <td colspan="3" class="tdSection"><h4>Advanced:</h4></td>
+          </tr>
+          <tr>
+            <td><label for="BLOB_HEIGHT">Blob Height</label></td>
+            <td><input name="BLOB_HEIGHT" id="BLOB_HEIGHT" step="any" value="10" onblur="validateInput()" /></td>
+            <td>Height of the printed blob</td>
+          </tr>
+          <tr>
+            <td><label for="EXTRUSION_AMOUNT">Extrusion Amount</label></td>
+            <td><input name="EXTRUSION_AMOUNT" id="EXTRUSION_AMOUNT" step="any" value="200" onblur="validateInput()" /></td>
+            <td>Length of filament to extrude into the blob</td>
+          </tr>
+          <tr>
+            <td height="24"><label for="PRIME_LENGTH">Prime Length:</label></td>
+            <td><input name="PRIME_LENGTH" id="PRIME_LENGTH" step="any" value="25" onblur="validateInput()" /></td>
+            <td>Length of the prime move</td>
+          </tr>
+          <tr>
+            <td height="24"><label for="PRIME_AMOUNT">Prime Amount:</label></td>
+            <td><input name="PRIME_AMOUNT" id="PRIME_AMOUNT" step="any" value="25" onblur="validateInput()" /></td>
+            <td>Filament to extrude during the prime move</td>
+          </tr>
+          <tr>
+            <td height="24"><label for="PRIME_SPEED">Prime Printing Speed:</label></td>
+            <td><input name="PRIME_SPEED" id="PRIME_SPEED" step="any" value="5" onblur="validateInput()" /></td>
+            <td>Speed of the prime move</td>
+          </tr>
+          <tr>
+            <td height="24"><label for="WIPE_LENGTH">Wipe Length:</label></td>
+            <td><input name="WIPE_LENGTH" id="WIPE_LENGTH" step="any" value="15" onblur="validateInput()" /></td>
+            <td>Distance between end of prime line and centre of the blob</td>
+          </tr>
+          <tr>
+            <td><label for="DWELL_PRIME">Dwell Time:</label></td>
+            <td><input name="DWELL_PRIME" id="DWELL_PRIME" step="0.1" value="20" onblur="validateInput()" /></td>
+            <td>Inserts a pause of x seconds before starting the test pattern to bleed off any residual nozzle pressure</td>
+          </tr>
+          <tr class="calibpat2">
+            <td><label for="FILENAME">Filename:</label></td>
+            <td colspan="2"><input name="FILENAME" id="FILENAME" value="filename" />
+              <input name="button" type="button" id="button" onclick="genGcode()" value="Generate G-code" />
+              <input name="button3" type="button" id="button3" onclick="setLocalStorage()" value="Save as default" title="Save settings in a cookie." />
+            <p id="warning1" style="display: none;">warning</p>
+            <p id="warning2" style="display: none;">warning</p>
+            <p id="warning3" style="display: none;">warning</p></td>
+            <td><p>
+                <input name="button2" type="button" id="button2" onclick="saveTextAsFile()" value="Download as file" />
+              </p></td>
+          </tr>
+        </tbody>
+      </table>
+      <h3>Notes on the settings:</h3>
+      <ul>
+        <li>The script checks to make sure the print fits on the bed. Verify it using a host software like <a href="//www.pronterface.com/" target="new">Printrun</a> or <a href="//www.repetier.com/" target="new">Repetier Host</a>.</li>
+        <li><code class="highlighter-rouge">Start</code> and <code class="highlighter-rouge">End Value</code> for the Pressure Advance determines the range that the test pattern will cover. For example a <code class="highlighter-rouge">Start Value</code> of 50 and an <code class="highlighter-rouge">End Value</code> of 150 will test a range of 100.</li>
+        <li>The <code class="highlighter-rouge">Pressure Advance Stepping</code> determines how many test lines are printed for the above range. For example, a Stepping of 10 and a range of 100 results in 10 test lines. A stepping of 3 would not work in this example as 100 cannot be exactly divided by 3. The script will throw an error message if an exact division is not possible. In this case either the range or the stepping needs to be adjusted.</li>
+        <li>The <code class="highlighter-rouge">Alternate Pattern</code> has a second line of <code class="highlighter-rouge">Fast Printing Speed</code> to test 0 to <code class="highlighter-rouge">Fast Printing Speed</code> and back to 0 conditions. Best used with an increased <code class="highlighter-rouge">Test Line Spacing</code> and reduced Pressure Advance range.</li>
+        <li>The proper Pressure Advance depends on the filament, nozzle size, nozzle geometry and printing temperature. If any of these values change, the calibration might need to be repeated.</li>
+      </ul>
+      <h2>Images</h2>
+      <p>The following images show some examples of the test patterns</p>
+      <div class="row">
+        <div class="col-sm-6">
+          <h3>Bed Settings</h3>
+          <img src="images/BedSettings.jpg" alt="Bed Settings" />
+        </div>
+        <div class="col-sm-6">
+          <h3>Print Settings</h3>
+          <img src="images/PrintSettings.jpg" alt="Print Settings" />
+        </div>
+      </div>
+  </div>
+</div>
+</body></html>
