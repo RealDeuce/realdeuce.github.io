@@ -350,7 +350,7 @@ function setLocalStorage() {
   };
 
   const lsSettings = JSON.stringify(settings);
-  window.localStorage.setItem('LIN_SETTINGS', lsSettings);
+  window.localStorage.setItem('ET_SETTINGS', lsSettings);
 }
 
 // toggle between mm/s and mm/min speed settings
@@ -548,12 +548,12 @@ $(window).load(() => {
   });
 
   // Get localStorage data
-  var lsSettings = window.localStorage.getItem('LIN_SETTINGS');
+  var lsSettings = window.localStorage.getItem('ET_SETTINGS');
 
   if (lsSettings) {
     var settings = jQuery.parseJSON(lsSettings);
     if (!settings['Version'] || settings['Version'] != SETTINGS_VERSION) {
-      window.localStorage.removeItem('LIN_SETTINGS');
+      window.localStorage.removeItem('ET_SETTINGS');
       alert('Script settings have been updated. Saved settings are reset to default values');
     }
     else {
