@@ -1,4 +1,4 @@
-// TODO hard-code Stealthburner/Afterburner toolhead clearance
+"use strict";
 
 /**
  * Extrusion Calibration Pattern
@@ -28,36 +28,47 @@ const SETTINGS_VERSION = '1.0';
 const Z_round = -3;
 const XY_round = -4;
 const EXT_round = -5;
+const FLOW_round = 0;
+const TEMP_round = 0;
+
+// TODO: this doesn't leave room for blobs...
+const X_clearance = 35;
+const Y_clearance = 45;
+
+function calcSteps(start, end, offset) {
+	return parseInt(Math.abs(start - end) / Math.abs(offset), 10) + 1;
+}
 
 function genGcode() {
-	let PRINTER = $('#PRINTER').val(),
-	    FILAMENT = $('#FILAMENT').val(),
-	    FILENAME = $('#FILENAME').val(),
-	    FILAMENT_DIAMETER = parseFloat($('#FIL_DIA').val()),
-	    START_GCODE = $('#START_GCODE').val(),
-	    END_GCODE = $('#END_GCODE').val(),
-	    SPEED_MOVE = parseInt($('#MOVE_SPEED').val()),
+	const PRINTER = $('#PRINTER').val(),
+	      FILAMENT = $('#FILAMENT').val(),
+	      FILENAME = $('#FILENAME').val(),
+	      FILAMENT_DIAMETER = parseFloat($('#FIL_DIA').val()),
+	      START_GCODE = $('#START_GCODE').val(),
+	      END_GCODE = $('#END_GCODE').val(),
+	      RETRACT_DIST = parseFloat($('#RETRACTION').val()),
+	      BED_X = parseInt($('#BEDSIZE_X').val()),
+	      BED_Y = parseInt($('#BEDSIZE_Y').val()),
+	      BED_MARGIN = parseInt($('#BED_MARGIN').val()),
+	      FAN_SPEED = parseFloat($('#FAN_SPEED').val()),
+	      F_START = parseFloat($('#F_START').val()),
+	      F_END = parseFloat($('#F_END').val()),
+	      F_STEP = parseFloat($('#F_STEP').val()),
+	      T_START = parseFloat($('#T_START').val()),
+	      T_END = parseFloat($('#T_END').val()),
+	      T_STEP = parseFloat($('#T_STEP').val()),
+	      USE_MMS = $('#MM_S').prop('checked'),
+	      PRIME_DWELL = parseFloat($('#DWELL_PRIME').val()),
+	      PRIME_LENGTH = parseFloat($('#PRIME_LENGTH').val()),
+	      PRIME_AMOUNT = parseFloat($('#PRIME_AMOUNT').val()),
+	      WIPE_LENGTH = parseFloat($('#WIPE_LENGTH').val()),
+	      BLOB_HEIGHT = parseFloat($('#BLOB_HEIGHT').val()),
+	      EXTRUSION_AMOUNT = parseFloat($('#EXTRUSION_AMOUNT').val());
+
+	let SPEED_MOVE = parseInt($('#MOVE_SPEED').val()),
 	    SPEED_RETRACT = parseInt($('#RETRACT_SPEED').val()),
 	    SPEED_UNRETRACT = parseInt($('#UNRETRACT_SPEED').val()),
-	    RETRACT_DIST = parseFloat($('#RETRACTION').val()),
-	    BED_X = parseInt($('#BEDSIZE_X').val()),
-	    BED_Y = parseInt($('#BEDSIZE_Y').val()),
-	    BED_MARGIN = parseInt($('#BED_MARGIN').val()),
-	    FAN_SPEED = parseFloat($('#FAN_SPEED').val()),
-	    F_START = parseFloat($('#F_START').val()),
-	    F_END = parseFloat($('#F_END').val()),
-	    F_STEP = parseFloat($('#F_STEP').val()),
-	    T_START = parseFloat($('#T_START').val()),
-	    T_END = parseFloat($('#T_END').val()),
-	    T_STEP = parseFloat($('#T_STEP').val()),
-	    USE_MMS = $('#MM_S').prop('checked'),
 	    SPEED_PRIME = parseFloat($('#PRIME_SPEED').val()),
-	    PRIME_DWELL = parseFloat($('#DWELL_PRIME').val()),
-	    PRIME_LENGTH = parseFloat($('#PRIME_LENGTH').val()),
-	    PRIME_AMOUNT = parseFloat($('#PRIME_AMOUNT').val()),
-	    WIPE_LENGTH = parseFloat($('#WIPE_LENGTH').val()),
-	    BLOB_HEIGHT = parseFloat($('#BLOB_HEIGHT').val()),
-	    EXTRUSION_AMOUNT = parseFloat($('#EXTRUSION_AMOUNT').val()),
 	    txtArea = document.getElementById('gcodetextarea');
 
 	if (USE_MMS) {
@@ -92,10 +103,10 @@ function genGcode() {
 	// Note, I added this one - Deuce
 	const endTemp = T_END;
 
-	let flowSteps = parseInt(Math.abs(startFlow - endFlow) / Math.abs(flowOffset), 10) + 1;
-	let tempSteps = parseInt(Math.abs(startTemp - endTemp) / Math.abs(tempOffset), 10) + 1;
-	let xSpacing = parseInt(((bedWidth - 2) * bedMargin - ((primeLength + wipeLength) * tempSteps)) / (tempSteps - 1), 10);
-	let ySpacing = parseInt((bedLength - 2 * bedMargin) / (tempSteps - 1), 10);
+	const flowSteps = calcSteps(startFlow, endFlow, flowOffset);
+	const tempSteps = calcSteps(startTemp, endTemp, tempOffset);
+	const xSpacing = parseInt((bedWidth - 2 * bedMargin - ((primeLength + wipeLength) * tempSteps)) / (tempSteps - 1), 10);
+	const ySpacing = parseInt((bedLength - 2 * bedMargin) / (flowSteps - 1), 10);
 
 	// Start G-code for pattern
 	let e_script = '; ### Klipper Extrusion Calibration Pattern ###\n' +
@@ -200,7 +211,7 @@ function saveTextAsFile() {
       textFileAsBlob = new Blob([textToWrite], {type: 'text/plain'}),
       usersFilename = document.getElementById('FILENAME').value,
       filename = usersFilename || '',
-      fileNameToSaveAs = filename + 'padvance.gcode';
+      fileNameToSaveAs = filename + '_extrusion.gcode';
   if (textToWrite) {
     saveAs(textFileAsBlob, fileNameToSaveAs);
   } else {
@@ -276,337 +287,246 @@ function getDecimals(num) {
 
 // save current settings as localStorage object
 function setLocalStorage() {
-  var FILAMENT_DIAMETER = parseFloat($('#FIL_DIA').val()),
-      NOZZLE_DIAMETER = parseFloat($('#NOZ_DIA').val()),
-      NOZZLE_LINE_RATIO = parseFloat($('#NOZ_LIN_R').val()),
-      START_GCODE = $('#START_GCODE').val(),
-      END_GCODE = $('#END_GCODE').val(),
-      SPEED_SLOW = parseInt($('#SLOW_SPEED').val()),
-      SPEED_FAST = parseInt($('#FAST_SPEED').val()),
-      SPEED_MOVE = parseInt($('#MOVE_SPEED').val()),
-      SPEED_RETRACT = parseInt($('#RETRACT_SPEED').val()),
-      ACCELERATION = parseInt($('#PRINT_ACCL').val()),
-      RETRACT_DIST = parseFloat($('#RETRACTION').val()),
-      BED_X = parseInt($('#BEDSIZE_X').val()),
-      BED_Y = parseInt($('#BEDSIZE_Y').val()),
-      NULL_CENTER = $('#CENTER_NULL').prop('checked'),
-      HEIGHT_LAYER = parseFloat($('#LAYER_HEIGHT').val()),
-      FAN_SPEED = parseFloat($('#FAN_SPEED').val()),
-      EXT_MULT = parseFloat($('#EXTRUSION_MULT').val()),
-      PATTERN_TYPE = $('#TYPE_PATTERN').val(),
-      K_START = parseFloat($('#K_START').val()),
-      K_END = parseFloat($('#K_END').val()),
-      K_STEP = parseFloat($('#K_STEP').val()),
-      PRINT_DIR = $('#DIR_PRINT').val(),
-      LINE_SPACING = parseFloat($('#SPACE_LINE').val()),
-      USE_FRAME = $('#FRAME').prop('checked'),
-      USE_PRIME = $('#PRIME').prop('checked'),
-      EXT_MULT_PRIME = parseFloat($('#PRIME_EXT').val()),
-      SPEED_PRIME = parseFloat($('#PRIME_SPEED').val()),
-      PRIME_DWELL = parseFloat($('#DWELL_PRIME').val()),
-      LENGTH_SLOW = parseFloat($('#SLOW_LENGTH').val()),
-      LENGTH_FAST = parseFloat($('#FAST_LENGTH').val()),
-      Z_OFFSET = parseFloat($('#OFFSET_Z').val()),
-      USE_FWR = $('#USE_FWR').prop('checked'),
-      USE_MMS = $('#MM_S').prop('checked'),
-      USE_LINENO = $('#LINE_NO').prop('checked');
+	const settings = {
+		'Version' : SETTINGS_VERSION,
+		'PRINTER' : $('#PRINTER').val(),
+		'FILAMENT' : $('#FILAMENT').val(),
+		'FILENAME' : $('#FILENAME').val(),
+		'FILAMENT_DIAMETER' : parseFloat($('#FIL_DIA').val()),
+		'START_GCODE' : $('#START_GCODE').val(),
+		'END_GCODE' : $('#END_GCODE').val(),
+		'RETRACT_DIST' : parseFloat($('#RETRACTION').val()),
+		'BED_X' : parseInt($('#BEDSIZE_X').val()),
+		'BED_Y' : parseInt($('#BEDSIZE_Y').val()),
+		'BED_MARGIN' : parseInt($('#BED_MARGIN').val()),
+		'FAN_SPEED' : parseFloat($('#FAN_SPEED').val()),
+		'F_START' : parseFloat($('#F_START').val()),
+		'F_END' : parseFloat($('#F_END').val()),
+		'F_STEP' : parseFloat($('#F_STEP').val()),
+		'T_START' : parseFloat($('#T_START').val()),
+		'T_END' : parseFloat($('#T_END').val()),
+		'T_STEP' : parseFloat($('#T_STEP').val()),
+		'USE_MMS' : $('#MM_S').prop('checked'),
+		'PRIME_DWELL' : parseFloat($('#DWELL_PRIME').val()),
+		'PRIME_LENGTH' : parseFloat($('#PRIME_LENGTH').val()),
+		'PRIME_AMOUNT' : parseFloat($('#PRIME_AMOUNT').val()),
+		'WIPE_LENGTH' : parseFloat($('#WIPE_LENGTH').val()),
+		'BLOB_HEIGHT' : parseFloat($('#BLOB_HEIGHT').val()),
+		'EXTRUSION_AMOUNT' : parseFloat($('#EXTRUSION_AMOUNT').val()),
+		'SPEED_MOVE' : parseInt($('#MOVE_SPEED').val()),
+		'SPEED_RETRACT' : parseInt($('#RETRACT_SPEED').val()),
+		'SPEED_UNRETRACT' : parseInt($('#UNRETRACT_SPEED').val()),
+		'SPEED_PRIME' : parseFloat($('#PRIME_SPEED').val())
+	};
 
-  var settings = {
-    'Version' : SETTINGS_VERSION,
-    'FILAMENT_DIAMETER': FILAMENT_DIAMETER,
-    'NOZZLE_DIAMETER': NOZZLE_DIAMETER,
-    'NOZZLE_LINE_RATIO': NOZZLE_LINE_RATIO,
-    'START_GCODE': START_GCODE,
-    'END_GCODE': END_GCODE,
-    'SPEED_SLOW': SPEED_SLOW,
-    'SPEED_FAST': SPEED_FAST,
-    'SPEED_MOVE': SPEED_MOVE,
-    'SPEED_RETRACT': SPEED_RETRACT,
-    'ACCELERATION': ACCELERATION,
-    'RETRACT_DIST': RETRACT_DIST,
-    'BED_X': BED_X,
-    'BED_Y': BED_Y,
-    'NULL_CENTER': NULL_CENTER,
-    'HEIGHT_LAYER': HEIGHT_LAYER,
-    'FAN_SPEED' : FAN_SPEED,
-    'EXT_MULT': EXT_MULT,
-    'PATTERN_TYPE': PATTERN_TYPE,
-    'K_START': K_START,
-    'K_END': K_END,
-    'K_STEP': K_STEP,
-    'PRINT_DIR': PRINT_DIR,
-    'LINE_SPACING': LINE_SPACING,
-    'USE_FRAME': USE_FRAME,
-    'USE_PRIME': USE_PRIME,
-    'EXT_MULT_PRIME': EXT_MULT_PRIME,
-    'SPEED_PRIME' : SPEED_PRIME,
-    'PRIME_DWELL': PRIME_DWELL,
-    'LENGTH_SLOW': LENGTH_SLOW,
-    'LENGTH_FAST': LENGTH_FAST,
-    'Z_OFFSET': Z_OFFSET,
-    'USE_FWR': USE_FWR,
-    'USE_MMS': USE_MMS,
-    'USE_LINENO': USE_LINENO
-  };
-
-  const lsSettings = JSON.stringify(settings);
-  window.localStorage.setItem('ET_SETTINGS', lsSettings);
+	const lsSettings = JSON.stringify(settings);
+	window.localStorage.setItem('ET_SETTINGS', lsSettings);
 }
 
 // toggle between mm/s and mm/min speed settings
 function speedToggle() {
-  var SPEED_SLOW = $('#SLOW_SPEED').val(),
-      SPEED_FAST = $('#FAST_SPEED').val(),
-      SPEED_MOVE = $('#MOVE_SPEED').val(),
-      SPEED_RETRACT = $('#RETRACT_SPEED').val(),
-      SPEED_PRIME = $('#PRIME_SPEED').val();
-      SPEED_UNRETRACT = $('#UNRETRACT_SPEED').val();
-  if ($('#MM_S').is(':checked')) {
-    SPEED_SLOW = $('#SLOW_SPEED').val();
-    SPEED_FAST = $('#FAST_SPEED').val();
-    SPEED_MOVE = $('#MOVE_SPEED').val();
-    SPEED_RETRACT = $('#RETRACT_SPEED').val();
-    SPEED_UNRETRACT = $('#UNRETRACT_SPEED').val();
-    SPEED_PRIME = $('#PRIME_SPEED').val();
-    $('#SLOW_SPEED').val(SPEED_SLOW / 60);
-    $('#FAST_SPEED').val(SPEED_FAST / 60);
-    $('#MOVE_SPEED').val(SPEED_MOVE / 60);
-    $('#RETRACT_SPEED').val(SPEED_RETRACT / 60);
-    $('#UNRETRACT_SPEED').val(SPEED_UNRETRACT / 60);
-    $('#PRIME_SPEED').val(SPEED_PRIME / 60);
-  } else {
-    SPEED_SLOW = $('#SLOW_SPEED').val();
-    SPEED_FAST = $('#FAST_SPEED').val();
-    SPEED_MOVE = $('#MOVE_SPEED').val();
-    SPEED_RETRACT = $('#RETRACT_SPEED').val();
-    SPEED_UNRETRACT = $('#UNRETRACT_SPEED').val();
-    SPEED_PRIME = $('#PRIME_SPEED').val();
-    $('#SLOW_SPEED').val(SPEED_SLOW * 60);
-    $('#FAST_SPEED').val(SPEED_FAST * 60);
-    $('#MOVE_SPEED').val(SPEED_MOVE * 60);
-    $('#RETRACT_SPEED').val(SPEED_RETRACT * 60);
-    $('#UNRETRACT_SPEED').val(SPEED_UNRETRACT * 60);
-    $('#PRIME_SPEED').val(SPEED_PRIME * 60);
-  }
-}
+	const SPEED_MOVE = parseInt($('#MOVE_SPEED').val()),
+	      SPEED_RETRACT = parseInt($('#RETRACT_SPEED').val()),
+	      SPEED_UNRETRACT = parseInt($('#UNRETRACT_SPEED').val()),
+	      SPEED_PRIME = parseFloat($('#PRIME_SPEED').val());
 
-// toggle between standard and alternate pattern type
-function patternType() {
-  if ($('#TYPE_PATTERN').val() === 'alt') {
-    if ($('#FRAME').is(':checked')) {
-      $('#FRAME').prop('checked', false);
-      $('#FRAME').prop('disabled', true);
-      $('label[for=FRAME]').css({opacity: 0.5});
-    } else {
-      $('#FRAME').prop('disabled', true);
-      $('label[for=FRAME]').css({opacity: 0.5});
-    }
-  } else if ($('#TYPE_PATTERN').val() === 'std'){
-    $('#FRAME').prop('disabled', false);
-    $('label[for=FRAME]').css({opacity: 1});
-  }
-}
-
-// toggle prime relevant options
-function togglePrime() {
-  if ($('#PRIME').is(':checked')) {
-    $('#PRIME_EXT').prop('disabled', false);
-    $('label[for=PRIME_EXT]').css({opacity: 1});
-  } else {
-    $('#PRIME_EXT').prop('disabled', true);
-    $('label[for=PRIME_EXT]').css({opacity: 0.5});
-  }
-}
-
-// toggle between standard and firmware retract
-function toggleRetract() {
-  if ($('#USE_FWR').is(':checked')) {
-    $('#RETRACT_SPEED').prop('disabled', true);
-    $('label[for=RETRACT_SPEED]').css({opacity: 0.5});
-  } else {
-    $('#RETRACT_SPEED').prop('disabled', false);
-    $('label[for=RETRACT_SPEED]').css({opacity: 1.0});
-  }
+	if ($('#MM_S').is(':checked')) {
+		$('#MOVE_SPEED').val(SPEED_MOVE / 60);
+		$('#RETRACT_SPEED').val(SPEED_RETRACT / 60);
+		$('#UNRETRACT_SPEED').val(SPEED_UNRETRACT / 60);
+		$('#PRIME_SPEED').val(SPEED_PRIME / 60);
+	} else {
+		$('#MOVE_SPEED').val(SPEED_MOVE * 60);
+		$('#RETRACT_SPEED').val(SPEED_RETRACT * 60);
+		$('#UNRETRACT_SPEED').val(SPEED_UNRETRACT * 60);
+		$('#PRIME_SPEED').val(SPEED_PRIME * 60);
+	}
 }
 
 // sanity checks for pattern / bed size
 function validateInput() {
-  var testNaN = {
-      // do not use parseInt or parseFloat for validating, since both
-      // functions will have special parsing characteristics leading to
-      // false numeric validation
-      BEDSIZE_X: $('#BEDSIZE_X').val(),
-      BEDSIZE_Y: $('#BEDSIZE_Y').val(),
-      K_START: $('#K_START').val(),
-      K_END: $('#K_END').val(),
-      K_STEP: $('#K_STEP').val(),
-      SPACE_LINE: $('#SPACE_LINE').val(),
-      SLOW_SPEED: $('#SLOW_SPEED').val(),
-      FAST_SPEED: $('#FAST_SPEED').val(),
-      SLOW_LENGTH: $('#SLOW_LENGTH').val(),
-      FAST_LENGTH: $('#FAST_LENGTH').val(),
-      FIL_DIA: $('#FIL_DIA').val(),
-      NOZ_DIA: $('#NOZ_DIA').val(),
-      NOZ_LIN_R: $('#NOZ_LIN_R').val(),
-      LAYER_HEIGHT: $('#LAYER_HEIGHT').val(),
-      FAN_SPEED: $('#FAN_SPEED').val(),
-      EXTRUSION_MULT: $('#EXTRUSION_MULT').val(),
-      PRIME_EXT: $('#PRIME_EXT').val(),
-      OFFSET_Z: $('#OFFSET_Z').val(),
-      MOVE_SPEED: $('#MOVE_SPEED').val(),
-      RETRACT_SPEED: $('#RETRACT_SPEED').val(),
-      PRINT_ACCL: $('#PRINT_ACCL').val(),
-      RETRACTION: $('#RETRACTION').val(),
-      PRIME_SPEED: $('#PRIME_SPEED').val(),
-      DWELL_PRIME: $('#DWELL_PRIME').val()
-    },
-    selectDir = $('#DIR_PRINT'),
-    printDir = selectDir.val(),
-    usePrime = $('#PRIME').prop('checked'),
-    useLineNo = $('#LINE_NO').prop('checked'),
-    sizeY = ((parseFloat(testNaN['K_END']) - parseFloat(testNaN['K_START'])) / parseFloat(testNaN['K_STEP']) * parseFloat(testNaN['SPACE_LINE'])) + 25, // +25 with ref marking
-    sizeX = (2 * parseFloat(testNaN['SLOW_LENGTH'])) + parseFloat(testNaN['FAST_LENGTH']) + (usePrime ? 10 : 0) + (useLineNo ? 8 : 0),
-    printDirRad = printDir * Math.PI / 180,
-    fitWidth = Math.round10(Math.abs(sizeX * Math.cos(printDirRad)) + Math.abs(sizeY * Math.sin(printDirRad)), 0),
-    fitHeight = Math.round10(Math.abs(sizeX * Math.sin(printDirRad)) + Math.abs(sizeY * Math.cos(printDirRad)), 0),
-    decimals = getDecimals(parseFloat(testNaN['K_STEP'])),
-    invalidDiv = 0;
+	const testNaN = {
+		// do not use parseInt or parseFloat for validating, since both
+		// functions will have special parsing characteristics leading to
+		// false numeric validation
+		FIL_DIA : $('#FIL_DIA').val(),
+		RETRACTION : $('#RETRACTION').val(),
+		BEDSIZE_X : $('#BEDSIZE_X').val(),
+		BEDSIZE_Y : $('#BEDSIZE_Y').val(),
+		BED_MARGIN : $('#BED_MARGIN').val(),
+		FAN_SPEED : $('#FAN_SPEED').val(),
+		F_START : $('#F_START').val(),
+		F_END : $('#F_END').val(),
+		F_STEP : $('#F_STEP').val(),
+		T_START : $('#T_START').val(),
+		T_END : $('#T_END').val(),
+		T_STEP : $('#T_STEP').val(),
+		DWELL_PRIME : $('#DWELL_PRIME').val(),
+		PRIME_LENGTH : $('#PRIME_LENGTH').val(),
+		PRIME_AMOUNT : $('#PRIME_AMOUNT').val(),
+		WIPE_LENGTH : $('#WIPE_LENGTH').val(),
+		BLOB_HEIGHT : $('#BLOB_HEIGHT').val(),
+		EXTRUSION_AMOUNT : $('#EXTRUSION_AMOUNT').val()
+	};
 
-  // Start clean
-  $('#K_START,#K_END,#K_STEP,#SPACE_LINE,#SLOW_LENGTH,#FAST_LENGTH,#FIL_DIA,#NOZ_DIA,#LAYER_HEIGHT,#EXTRUSION_MULT,#PRIME_EXT,#OFFSET_Z,#NOZ_LIN_R,'
-     + '#START_GCODE,#END_GCODE,#MOVE_SPEED,#RETRACT_SPEED,#UNRETRACT_SPEED,#PRINT_ACCL,#RETRACTION,#PRIME_SPEED,#DWELL_PRIME,#FAST_SPEED,#SLOW_SPEED').each((i,t) => {
-    t.setCustomValidity('');
-    const tid = $(t).attr('id');
-    $(`label[for=${tid}]`).removeClass();
-  });
-  $('#warning1').hide();
-  $('#warning2').hide();
-  $('#warning3').hide();
-  $('#button').prop('disabled', false);
+	const F_START = parseFloat($('#F_START').val()),
+	      F_END = parseFloat($('#F_END').val()),
+	      F_STEP = parseFloat($('#F_STEP').val()),
+	      T_START = parseFloat($('#T_START').val()),
+	      T_END = parseFloat($('#T_END').val()),
+	      T_STEP = parseFloat($('#T_STEP').val()),
+	      BED_X = parseInt($('#BEDSIZE_X').val()),
+	      BED_Y = parseInt($('#BEDSIZE_Y').val()),
+	      BED_MARGIN = parseInt($('#BED_MARGIN').val()),
+	      PRIME_LENGTH = parseFloat($('#PRIME_LENGTH').val()),
+	      WIPE_LENGTH = parseFloat($('#WIPE_LENGTH').val()),
+	      flowSteps = calcSteps(F_START, F_END, F_STEP),
+	      tempSteps = calcSteps(T_START, T_END, T_STEP),
+	      xSpacing = parseInt((BED_X - 2 * BED_MARGIN - ((PRIME_LENGTH + WIPE_LENGTH) * tempSteps)) / (tempSteps - 1), 10),
+	      ySpacing = parseInt((BED_Y - 2 * BED_MARGIN) / (flowSteps - 1), 10),
+	      fDecimals = getDecimals(parseFloat(testNaN['F_STEP'])),
+	      tDecimals = getDecimals(parseFloat(testNaN['T_STEP']));
+	let invalidDiv = 0;
 
-  // Check for proper numerical values
-  Object.keys(testNaN).forEach((k) => {
-    if ((isNaN(testNaN[k]) && !isFinite(testNaN[k])) || testNaN[k].trim().length === 0) {
-      $('label[for=' + k + ']').addClass('invalidNumber');
-      $('#' + k)[0].setCustomValidity('The value is not a proper number.');
-      $('#warning3').text('Some values are not proper numbers. Check highlighted Settings.');
-      $('#warning3').addClass('invalidNumber');
-      $('#warning3').show();
-      $('#button').prop('disabled', true);
-    }
-  });
+	// Start clean
+	$('#FIL_DIA,#RETRACTION,#BEDSIZE_X,#BEDSIZE_Y,#BED_MARGIN,#FAN_SPEED,#F_START,#F_END,#F_STEP,'
+	    + '#T_START,#T_END,#T_STEP,#DWELL_PRIME,#PRIME_LENGTH,#PRIME_AMOUNT,#WIPE_LENGTH,#BLOB_HEIGHT,#EXTRUSION_AMOUNT').each((i,t) => {
+		t.setCustomValidity('');
+		const tid = $(t).attr('id');
+		$(`label[for=${tid}]`).removeClass();
+	});
+	$('#warning1').hide();
+	$('#warning2').hide();
+	$('#warning3').hide();
+	$('#warning4').hide();
+	$('#warning5').hide();
+	$('#button').prop('disabled', false);
 
-  // Check if Pressure Advance Stepping is a multiple of the Pressure Advance Range
-  if ((Math.round10(parseFloat(testNaN['K_END']) - parseFloat(testNaN['K_START']), PA_round) * Math.pow(10, decimals)) % (parseFloat(testNaN['K_STEP']) * Math.pow(10, decimals)) !== 0) {
-    $('label[for=K_START]').addClass('invalidDiv');
-    $('#K_START')[0].setCustomValidity('Pressure Advance range cannot be cleanly divided.');
-    $('label[for=K_END]').addClass('invalidDiv');
-    $('#K_END')[0].setCustomValidity('Pressure Advance range cannot be cleanly divided.');
-    $('label[for=K_STEP]').addClass('invalidDiv');
-    $('#K_STEP')[0].setCustomValidity('Pressure Advance range cannot be cleanly divided.');
-    $('#warning1').text('Your Pressure Advance range cannot be cleanly divided. Check highlighted Pattern Settings.');
-    $('#warning1').addClass('invalidDiv');
-    $('#warning1').show();
-    $('#button').prop('disabled', true);
-    invalidDiv = 1;
-  }
+	// Check for proper numerical values
+	Object.keys(testNaN).forEach((k) => {
+		if ((isNaN(testNaN[k]) && !isFinite(testNaN[k])) || testNaN[k].trim().length === 0) {
+			$('label[for=' + k + ']').addClass('invalidNumber');
+			$('#' + k)[0].setCustomValidity('The value is not a proper number.');
+			$('#warning1').text('Some values are not proper numbers. Check highlighted Settings.');
+			$('#warning1').addClass('invalidNumber');
+			$('#warning1').show();
+			$('#button').prop('disabled', true);
+		}
+	});
 
-  // Check if pattern settings exceed bed size
-  if (fitWidth > (parseInt(testNaN['BEDSIZE_X']) - 5)) {
-    $('label[for=SLOW_LENGTH]').addClass('invalidSize');
-    $('#SLOW_LENGTH')[0].setCustomValidity('Pattern size (x: ' + fitWidth + ', y: ' + fitHeight + ') exceeds your X bed size.');
-    $('label[for=FAST_LENGTH]').addClass('invalidSize');
-    $('#FAST_LENGTH')[0].setCustomValidity('Pattern size (x: ' + fitWidth + ', y: ' + fitHeight + ') exceeds your X bed size.');
-    $((invalidDiv ? '#warning2' : '#warning1')).text('Your Pattern size (x: ' + fitWidth + ', y: ' + fitHeight + ') exceeds your X bed size. Check highlighted Pattern Settings.');
-    $((invalidDiv ? '#warning2' : '#warning1')).addClass('invalidSize');
-    $((invalidDiv ? '#warning2' : '#warning1')).show();
-  }
+	// Check if Flow Stepping is a multiple of the Flow Range
+	if ((Math.round10(parseFloat(testNaN['F_END']) - parseFloat(testNaN['F_START']), FLOW_round) * Math.pow(10, fDecimals)) % (parseFloat(testNaN['F_STEP']) * Math.pow(10, fDecimals)) !== 0) {
+		$('label[for=F_START]').addClass('invalidDiv');
+		$('#F_START')[0].setCustomValidity('Flow range cannot be cleanly divided.');
+		$('label[for=F_END]').addClass('invalidDiv');
+		$('#F_END')[0].setCustomValidity('Flow range cannot be cleanly divided.');
+		$('label[for=F_STEP]').addClass('invalidDiv');
+		$('#F_STEP')[0].setCustomValidity('Flow range cannot be cleanly divided.');
+		$('#warning2').text('Your Flow range cannot be cleanly divided. Check highlighted Pattern Settings.');
+		$('#warning2').addClass('invalidDiv');
+		$('#warning2').show();
+		$('#button').prop('disabled', true);
+		invalidDiv = 1;
+	}
 
-  if (fitHeight > (parseInt(testNaN['BEDSIZE_Y']) - 5)) {
-    $('label[for=K_START]').addClass('invalidSize');
-    $('#K_START')[0].setCustomValidity('Pattern size (x: ' + fitWidth + ', y: ' + fitHeight + ') exceeds your Y bed size.');
-    $('label[for=K_END]').addClass('invalidSize');
-    $('#K_END')[0].setCustomValidity('Pattern size (x: ' + fitWidth + ', y: ' + fitHeight + ') exceeds your Y bed size.');
-    $('label[for=K_STEP]').addClass('invalidSize');
-    $('#K_STEP')[0].setCustomValidity('Pattern size (x: ' + fitWidth + ', y: ' + fitHeight + ') exceeds your Y bed size.');
-    $('label[for=SPACE_LINE]').addClass('invalidSize');
-    $('#SPACE_LINE')[0].setCustomValidity('Pattern size (x: ' + fitWidth + ', y: ' + fitHeight + ') exceeds your Y bed size.');
-    $((invalidDiv ? '#warning2' : '#warning1')).text('Your Pattern size (x: ' + fitWidth + ', y: ' + fitHeight + ') exceeds your Y bed size. Check highlighted Pattern Settings.');
-    $((invalidDiv ? '#warning2' : '#warning1')).addClass('invalidSize');
-    $((invalidDiv ? '#warning2' : '#warning1')).show();
-  }
+	// Check if Temperature Stepping is a multiple of the Temperature Range
+	if ((Math.round10(parseFloat(testNaN['T_END']) - parseFloat(testNaN['T_START']), TEMP_round) * Math.pow(10, tDecimals)) % (parseFloat(testNaN['T_STEP']) * Math.pow(10, tDecimals)) !== 0) {
+		$('label[for=T_START]').addClass('invalidDiv');
+		$('#T_START')[0].setCustomValidity('Temperature range cannot be cleanly divided.');
+		$('label[for=T_END]').addClass('invalidDiv');
+		$('#T_END')[0].setCustomValidity('Temperature range cannot be cleanly divided.');
+		$('label[for=T_STEP]').addClass('invalidDiv');
+		$('#T_STEP')[0].setCustomValidity('Temperature range cannot be cleanly divided.');
+		$('#warning3').text('Your Temperature range cannot be cleanly divided. Check highlighted Pattern Settings.');
+		$('#warning3').addClass('invalidDiv');
+		$('#warning3').show();
+		$('#button').prop('disabled', true);
+		invalidDiv = 1;
+	}
+
+	// Check if pattern settings result in collision
+	if (ySpacing < Y_clearance) {
+		$('label[for=F_START]').addClass('invalidDiv');
+		$('#F_START')[0].setCustomValidity('Flow range results in blob collisions.');
+		$('label[for=F_END]').addClass('invalidDiv');
+		$('#F_END')[0].setCustomValidity('Flow range results in blob collisions.');
+		$('label[for=F_STEP]').addClass('invalidDiv');
+		$('#F_STEP')[0].setCustomValidity('Flow range results in blow collisions.');
+		$('#warning4').text('Your Flow range would print blobs too close together, and the printhead would collide with them. Check highlighted Pattern Settings.');
+		$('#warning4').addClass('invalidDiv');
+		$('#warning4').show();
+		$('#button').prop('disabled', true);
+		invalidDiv = 1;
+	}
+
+	if ((xSpacing + PRIME_LENGTH + WIPE_LENGTH) < X_clearance) {
+		$('label[for=T_START]').addClass('invalidDiv');
+		$('#T_START')[0].setCustomValidity('Temperature range results in blob collisions.');
+		$('label[for=T_END]').addClass('invalidDiv');
+		$('#T_END')[0].setCustomValidity('Temperature range results in blob collisions.');
+		$('label[for=T_STEP]').addClass('invalidDiv');
+		$('#T_STEP')[0].setCustomValidity('Temperature range results in blow collisions.');
+		$('#warning5').text('Your Temperature range would print blobs too close together, and the printhead would collide with them. Check highlighted Pattern Settings.');
+		$('#warning5').addClass('invalidDiv');
+		$('#warning5').show();
+		$('#button').prop('disabled', true);
+		invalidDiv = 1;
+	}
 }
 
 $(window).load(() => {
-  // Adapt textarea to cell size
-  var TXTAREAHEIGHT = $('.txtareatd').height();
-  $('.calibpat #gcodetextarea').css({'height': (TXTAREAHEIGHT) + 'px'});
+	// Adapt textarea to cell size
+	let TXTAREAHEIGHT = $('.txtareatd').height();
+	$('.calibpat #gcodetextarea').css({'height': (TXTAREAHEIGHT) + 'px'});
 
-  // create tab index dynamically
-  $(':input:not(:hidden)').each(function(i) {
-    $(this).attr('tabindex', i + 1);
-  });
+	// create tab index dynamically
+	$(':input:not(:hidden)').each(function(i) {
+		$(this).attr('tabindex', i + 1);
+	});
 
-  // Get localStorage data
-  var lsSettings = window.localStorage.getItem('ET_SETTINGS');
+	// Get localStorage data
+	let lsSettings = window.localStorage.getItem('ET_SETTINGS');
 
-  if (lsSettings) {
-    var settings = jQuery.parseJSON(lsSettings);
-    if (!settings['Version'] || settings['Version'] != SETTINGS_VERSION) {
-      window.localStorage.removeItem('ET_SETTINGS');
-      alert('Script settings have been updated. Saved settings are reset to default values');
-    }
-    else {
-      $('#FIL_DIA').val(settings['FILAMENT_DIAMETER']);
-      $('#NOZ_DIA').val(settings['NOZZLE_DIAMETER']);
-      $('#NOZ_LIN_R').val(settings['NOZZLE_LINE_RATIO']);
-      $('#START_GCODE').val(settings['START_GCODE']);
-      $('#END_GCODE').val(settings['END_GCODE']);
-      $('#SLOW_SPEED').val(settings['SPEED_SLOW']);
-      $('#FAST_SPEED').val(settings['SPEED_FAST']);
-      $('#MOVE_SPEED').val(settings['SPEED_MOVE']);
-      $('#RETRACT_SPEED').val(settings['SPEED_RETRACT']);
-      $('#PRINT_ACCL').val(settings['ACCELERATION']);
-      $('#RETRACTION').val(settings['RETRACT_DIST']);
-      $('#BEDSIZE_X').val(settings['BED_X']);
-      $('#BEDSIZE_Y').val(settings['BED_Y']);
-      $('#CENTER_NULL').prop('checked', settings['NULL_CENTER']);
-      $('#LAYER_HEIGHT').val(settings['HEIGHT_LAYER']);
-      $('#FAN_SPEED').val(settings['FAN_SPEED']);
-      $('#EXTRUSION_MULT').val(settings['EXT_MULT']);
-      $('#TYPE_PATTERN').val(settings['PATTERN_TYPE']);
-      $('#K_START').val(settings['K_START']);
-      $('#K_END').val(settings['K_END']);
-      $('#K_STEP').val(settings['K_STEP']);
-      $('#DIR_PRINT').val(settings['PRINT_DIR']);
-      $('#SPACE_LINE').val(settings['LINE_SPACING']);
-      $('#FRAME').prop('checked', settings['USE_FRAME']);
-      $('#PRIME').prop('checked', settings['USE_PRIME']);
-      $('#PRIME_EXT').val(settings['EXT_MULT_PRIME']);
-      $('#PRIME_SPEED').val(settings['SPEED_PRIME']);
-      $('#DWELL_PRIME').val(settings['PRIME_DWELL']);
-      $('#SLOW_LENGTH').val(settings['LENGTH_SLOW']);
-      $('#FAST_LENGTH').val(settings['LENGTH_FAST']);
-      $('#OFFSET_Z').val(settings['Z_OFFSET']);
-      $('#USE_FWR').prop('checked', settings['USE_FWR']);
-      $('#MM_S').prop('checked', settings['USE_MMS']);
-      $('#LINE_NO').prop('checked', settings['USE_LINENO']);
+	if (lsSettings) {
+		var settings = jQuery.parseJSON(lsSettings);
+		if (!settings['Version'] || settings['Version'] != SETTINGS_VERSION) {
+			window.localStorage.removeItem('ET_SETTINGS');
+			alert('Script settings have been updated. Saved settings are reset to default values');
+		}
+		else {
+			$('#PRINTER').val(settings['PRINTER']),
+			$('#FILAMENT').val(settings['FILAMENT']),
+			$('#FILENAME').val(settings['FILENAME']),
+			$('#FIL_DIA').val(settings['FILAMENT_DIAMETER']),
+			$('#START_GCODE').val(settings['START_GCODE']),
+			$('#END_GCODE').val(settings['END_GCODE']),
+			$('#RETRACTION').val(settings['RETRACT_DIST']),
+			$('#BEDSIZE_X').val(settings['BED_X']),
+			$('#BEDSIZE_Y').val(settings['BED_Y']),
+			$('#BED_MARGIN').val(settings['BED_MARGIN']),
+			$('#FAN_SPEED').val(settings['FAN_SPEED']),
+			$('#F_START').val(settings['F_START']),
+			$('#F_END').val(settings['F_END']),
+			$('#F_STEP').val(settings['F_STEP']),
+			$('#T_START').val(settings['T_START']),
+			$('#T_END').val(settings['T_END']),
+			$('#T_STEP').val(settings['T_STEP']),
+			$('#MM_S').prop('checked', settings['USE_MMS']);
+			$('#DWELL_PRIME').val(settings['PRIME_DWELL']),
+			$('#PRIME_LENGTH').val(settings['PRIME_LENGTH']),
+			$('#PRIME_AMOUNT').val(settings['PRIME_AMOUNT']),
+			$('#WIPE_LENGTH').val(settings['WIPE_LENGTH']),
+			$('#BLOB_HEIGHT').val(settings['BLOB_HEIGHT']),
+			$('#EXTRUSION_AMOUNT').val(settings['EXTRUSION_AMOUNT']),
+			$('#MOVE_SPEED').val(settings['SPEED_MOVE']),
+			$('#RETRACT_SPEED').val(settings['SPEED_RETRACT']),
+			$('#UNRETRACT_SPEED').val(settings['SPEED_UNRETRACT']),
+			$('#PRIME_SPEED').val(settings['SPEED_PRIME']);
+		}
+	}
 
-      //patternType();
-      //toggleRetract();
-    }
-  }
+	// toggle between mm/s and mm/min speeds
+	$('#MM_S').change(speedToggle);
 
-  // toggle between mm/s and mm/min speeds
-  $('#MM_S').change(speedToggle);
-
-  // toggle prime relevant html elements
-  $('#PRIME').change(togglePrime);
-
-  // frame and alternate pattern are mutually exclusive
-  $('#TYPE_PATTERN').change(patternType);
-
-  // Change retract type
-  $('#USE_FWR').change(toggleRetract);
-
+	validateInput();
 });

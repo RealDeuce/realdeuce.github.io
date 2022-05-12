@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="description" content="Create G-code to calibrate Extrusion">
 <link rel="stylesheet" href="../PA/stylesheets/main.css"/>
-<link rel="stylesheet" href="slumb3rt1t4n22stylesheets/font-awesome.min.css"/>
+<link rel="stylesheet" href="../PA/stylesheets/font-awesome.min.css"/>
 </head>
 <body>
 <script language="JavaScript" type="text/javascript" src="../PA/javascript/jquery-2.2.1.min.js"></script>
@@ -19,9 +19,7 @@
         <div class="col-lg-1 col-md-2 visible-lg-block visible-md-block custom-alert-icon"> <i class="fa fa-info-circle fa-4x" aria-hidden="true"></i> </div>
         <div class="col-lg-11 col-md-10 custom-alert-text">
           <p><em>WARNING!</em><br/>
-          THIS IS A WORK IN PROGRESS AND IS KNOWN TO BE BROKEN -- DO NOT USE.</p>
-        </div>
-        <div class="col-lg-11 col-md-10 custom-alert-text">
+          THIS IS A WORK IN PROGRESS AND IS NOT TESTED -- USE AT YOUR OWN RISK.</p>
           <p><em>Caution!</em><br/>
           If Start G-code is incorrect, it could damage your printer.  Anything which could damage your printer could cause other damage.  Be <em>absolutely sure</em> your Start G-code is correct before printing the generated G-code.</p>
         </div>
@@ -36,7 +34,7 @@
           </tr>
           <tr>
             <td colspan="3" class="tdSection"><h4>Printer:</h4></td>
-            <td rowspan="40" class="txtareatd"><textarea name="textarea" id="gcodetextarea"></textarea></td>
+            <td rowspan="33" class="txtareatd"><textarea name="textarea" id="gcodetextarea"></textarea></td>
           </tr>
           <tr>
             <td><label for="PRINTER">Printer:</label></td>
@@ -134,12 +132,12 @@ PRINT_END
           </tr>
           <tr>
             <td><label for="F_END">Ending Value for Flow:</label></td>
-            <td><input name="F_END" id="F_END" step="any" value="16" onblur="validateInput()" /></td>
+            <td><input name="F_END" id="F_END" step="any" value="14" onblur="validateInput()" /></td>
             <td id="end_factor">Ending value of the Flow</td>
           </tr>
           <tr>
             <td><label for="F_STEP">Flow Stepping:</label></td>
-            <td><input name="F_STEP" id="F_STEP" step="any" value="2" onblur="validateInput()" /></td>
+            <td><input name="F_STEP" id="F_STEP" step="any" value="3" onblur="validateInput()" /></td>
             <td id="step_factor">Stepping of the Flow in the test pattern. Needs to be an exact divisor of the Flow Range (End - Start)</td>
           </tr>
           <tr>
@@ -203,6 +201,8 @@ PRINT_END
             <p id="warning1" style="display: none;">warning</p>
             <p id="warning2" style="display: none;">warning</p>
             <p id="warning3" style="display: none;">warning</p></td>
+            <p id="warning4" style="display: none;">warning</p></td>
+            <p id="warning5" style="display: none;">warning</p></td>
             <td><p>
                 <input name="button2" type="button" id="button2" onclick="saveTextAsFile()" value="Download as file" />
               </p></td>
@@ -211,11 +211,9 @@ PRINT_END
       </table>
       <h3>Notes on the settings:</h3>
       <ul>
-        <li>The script checks to make sure the print fits on the bed. Verify it using a host software like <a href="//www.pronterface.com/" target="new">Printrun</a> or <a href="//www.repetier.com/" target="new">Repetier Host</a>.</li>
-        <li><code class="highlighter-rouge">Start</code> and <code class="highlighter-rouge">End Value</code> for the Pressure Advance determines the range that the test pattern will cover. For example a <code class="highlighter-rouge">Start Value</code> of 50 and an <code class="highlighter-rouge">End Value</code> of 150 will test a range of 100.</li>
-        <li>The <code class="highlighter-rouge">Pressure Advance Stepping</code> determines how many test lines are printed for the above range. For example, a Stepping of 10 and a range of 100 results in 10 test lines. A stepping of 3 would not work in this example as 100 cannot be exactly divided by 3. The script will throw an error message if an exact division is not possible. In this case either the range or the stepping needs to be adjusted.</li>
-        <li>The <code class="highlighter-rouge">Alternate Pattern</code> has a second line of <code class="highlighter-rouge">Fast Printing Speed</code> to test 0 to <code class="highlighter-rouge">Fast Printing Speed</code> and back to 0 conditions. Best used with an increased <code class="highlighter-rouge">Test Line Spacing</code> and reduced Pressure Advance range.</li>
-        <li>The proper Pressure Advance depends on the filament, nozzle size, nozzle geometry and printing temperature. If any of these values change, the calibration might need to be repeated.</li>
+        <li>The script checks to make sure the blobs do not collide with the toolhead. Verify it using a host software like <a href="//www.pronterface.com/" target="new">Printrun</a> or <a href="//www.repetier.com/" target="new">Repetier Host</a>.</li>
+        <li><code class="highlighter-rouge">Start</code>, <code class="highlighter-rouge">End</code>, and <code class="highlighter-rouge">Stepping Value</code> for the test determines the number of rows and columns generated. For example a <code class="highlighter-rouge">Start Value</code> of 50, an <code class="highlighter-rouge">End Value</code> of 100 and a <code class="highlighter-rouge">Stepping Value</code> of 25 will create 5 rows or columns.</li>
+        <li>The proper Extrusion Multiplier depends on the filament, nozzle size, nozzle geometry and printing temperature. If any of these values change, the calibration might need to be repeated.</li>
       </ul>
       <h2>Images</h2>
       <p>The following images show some examples of the test patterns</p>
