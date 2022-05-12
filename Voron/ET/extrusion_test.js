@@ -187,7 +187,17 @@ function genGcode() {
 			e_script += "G1 E" + (retractionDistance) + " F" + unretractionSpeed + " ; De-Retract\n";
 			// calculate Extrusionspeed
 			const extrusionSpeed = Math.round10(blobHeight / (extrusionAmount / ((startFlow + (r - 1) * flowOffset) / (Math.atan(1) * filamentDiameter * filamentDiameter) * 60)), -2);
-			e_script += "G1 Z" + (0.5 + blobHeight) + " E" + extrusionAmount + " F" + extrusionSpeed + " ; Extrude\n";
+			let zSteps = extrusionAmount / 50;
+			if (zSteps > parseInt(zSteps, 10)) {
+				zSteps = parseInt(zSteps, 10) + 1;
+			}
+			let e = extrusionAmount;
+			let ea = Math.round10(extrusionAmount / zSteps, EXT_round);
+			for (let z = 1; z < zSteps; z++) {
+				e_script += "G1 Z" + (0.5 + blobHeight) / zSteps * z + " E" + ea + " F" + extrusionSpeed + " ; Extrude\n";
+				e -= ea;
+			}
+			e_script += "G1 Z" + (0.5 + blobHeight) + " E" + e + " F" + extrusionSpeed + " ; Extrude\n";
 			e_script += "G1 E" + (-1 * retractionDistance) + " F" + retractionSpeed + " ; Retract\n";
 			e_script += "G0 Z" + (0.5 + blobHeight + 5) + "; Lift\n";
 			e_script += "G0 X" + (Math.abs(bedMargin) + ((c - 1) * (primeLength + wipeLength + xSpacing))) + " Y" + ((bedLength - bedMargin) - (r - 1) * ySpacing) + " F" + movementSpeed + '\n';
