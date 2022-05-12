@@ -169,7 +169,7 @@ function genGcode() {
 		// Set temp
 		e_script += "G4 S0 ; Dwell\n";
 		e_script += "M109 R" + (startTemp + (c - 1) * tempOffset) + '\n';
-    
+
 		// Output for each test
 		for (let r = 1; r <= flowSteps; r++) {
 			// Message
