@@ -34,6 +34,7 @@ const TEMP_round = 0;
 // TODO: this doesn't leave room for blobs...
 const X_clearance = 35;
 const Y_clearance = 45;
+const Z_clearance = 40;
 
 function calcSteps(start, end, offset) {
 	return parseInt(Math.abs(start - end) / Math.abs(offset), 10) + 1;
@@ -395,7 +396,8 @@ function validateInput() {
 	      xSpacing = parseInt((BED_X - 2 * BED_MARGIN - ((PRIME_LENGTH + WIPE_LENGTH) * tempSteps)) / (tempSteps - 1), 10),
 	      ySpacing = parseInt((BED_Y - 2 * BED_MARGIN) / (flowSteps - 1), 10),
 	      fDecimals = getDecimals(parseFloat(testNaN['F_STEP'])),
-	      tDecimals = getDecimals(parseFloat(testNaN['T_STEP']));
+	      tDecimals = getDecimals(parseFloat(testNaN['T_STEP'])),
+	      blobHeight = parseFloat($('#BLOB_HEIGHT').val());
 	let invalidDiv = 0;
 
 	// Start clean
@@ -410,6 +412,7 @@ function validateInput() {
 	$('#warning3').hide();
 	$('#warning4').hide();
 	$('#warning5').hide();
+	$('#warning6').hide();
 	$('#button').prop('disabled', false);
 
 	// Check for proper numerical values
@@ -479,6 +482,17 @@ function validateInput() {
 		$('#warning5').text('Your Temperature range would print blobs too close together, and the printhead would collide with them. Check highlighted Pattern Settings.');
 		$('#warning5').addClass('invalidDiv');
 		$('#warning5').show();
+		$('#button').prop('disabled', true);
+		invalidDiv = 1;
+	}
+
+	// Check that the blobs won't hit the X extrusion
+	if (blobHeight > Z_clearance) {
+		$('label[for=BLOB_HEIGHT]').addClass('invalidDiv');
+		$('#BLOB_HEIGHT')[0].setCustomValidity('Blob too high, will collide with X extrusion.');
+		$('#warning6').text('Your blob height is too high and would result in collisions with the X extrusion.  Lower blob height to ' + Z_clearance + ' or below.');
+		$('#warning6').addClass('invalidDiv');
+		$('#warning6').show();
 		$('#button').prop('disabled', true);
 		invalidDiv = 1;
 	}
